@@ -1,0 +1,29 @@
+{
+  "name": "careerhub-job-portal",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "admin:create": "node scripts/create-admin.cjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.840.0",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.4.0",
+    "pg": "^8.16.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/pg": "^8.15.4",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.7",
+    "typescript": "^5.8.3"
+  }
+}
