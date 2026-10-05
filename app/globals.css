@@ -1488,6 +1488,95 @@ h1, h2, h3, .welcome-row h1, .recruiter-welcome h1, .subpage-heading h1,
 .community-compose footer { flex-wrap: wrap; gap: 9px; }
 .community-compose footer small { margin-left: auto; }
 
+:root[data-theme$="-dark"] .auth-form > label,
+:root[data-theme$="-dark"] .support-form > label,
+:root[data-theme$="-dark"] .support-reply-form > label { color: var(--theme-text); }
+:root[data-theme$="-dark"] .auth-form > label > input,
+:root[data-theme$="-dark"] .password-input,
+:root[data-theme$="-dark"] .password-input input,
+:root[data-theme$="-dark"] .profile-form input,
+:root[data-theme$="-dark"] .profile-form select,
+:root[data-theme$="-dark"] .profile-form textarea,
+:root[data-theme$="-dark"] .support-form input,
+:root[data-theme$="-dark"] .support-form textarea,
+:root[data-theme$="-dark"] .support-form select,
+:root[data-theme$="-dark"] .support-reply-form textarea {
+  border-color: var(--theme-line);
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  caret-color: var(--theme-primary);
+  -webkit-text-fill-color: var(--theme-text);
+}
+:root[data-theme$="-dark"] .password-input input { border: 0; }
+:root[data-theme$="-dark"] .auth-form > label > input:-webkit-autofill,
+:root[data-theme$="-dark"] .password-input input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--theme-bg) inset;
+  -webkit-text-fill-color: var(--theme-text);
+}
+:root[data-theme$="-dark"] .account-type-picker button,
+:root[data-theme$="-dark"] .help-form-panel,
+:root[data-theme$="-dark"] .support-request,
+:root[data-theme$="-dark"] .my-support-request {
+  border-color: var(--theme-line);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+:root[data-theme$="-dark"] .account-type-picker button strong,
+:root[data-theme$="-dark"] .help-form-heading h2,
+:root[data-theme$="-dark"] .help-form-heading p strong,
+:root[data-theme$="-dark"] .support-request h2,
+:root[data-theme$="-dark"] .my-support-request h3 { color: var(--theme-text); }
+:root[data-theme$="-dark"] .account-type-picker button small,
+:root[data-theme$="-dark"] .help-form-heading p,
+:root[data-theme$="-dark"] .support-form > label > small,
+:root[data-theme$="-dark"] .support-request > p,
+:root[data-theme$="-dark"] .support-request footer,
+:root[data-theme$="-dark"] .my-support-request > p,
+:root[data-theme$="-dark"] .my-support-request > small,
+:root[data-theme$="-dark"] .my-support-requests > header p,
+:root[data-theme$="-dark"] .my-support-empty { color: var(--theme-muted); }
+:root[data-theme$="-dark"] .support-request-top select {
+  border-color: var(--theme-line);
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+:root[data-theme$="-dark"] .support-request footer { border-color: var(--theme-line); }
+:root[data-theme$="-dark"] .support-reply-form,
+:root[data-theme$="-dark"] .support-admin-reply,
+:root[data-theme$="-dark"] .my-support-request blockquote { border-color: var(--theme-line); }
+:root[data-theme$="-dark"] .support-admin-reply,
+:root[data-theme$="-dark"] .my-support-request blockquote { background: var(--theme-bg); color: var(--theme-text); }
+:root[data-theme$="-dark"] .support-admin-reply p,
+:root[data-theme$="-dark"] .my-support-request blockquote p { color: var(--theme-muted); }
+:root[data-theme$="-dark"] .support-category { background: var(--theme-soft); color: var(--theme-soft-text); }
+:root[data-theme$="-dark"] .reported-account { color: var(--theme-primary); }
+:root[data-theme$="-dark"] .auth-form-wrap h2,
+:root[data-theme$="-dark"] .auth-subtitle,
+:root[data-theme$="-dark"] .auth-panel-top,
+:root[data-theme$="-dark"] .auth-panel-footer,
+:root[data-theme$="-dark"] .auth-security,
+:root[data-theme$="-dark"] .admin-entry-note { color: var(--theme-muted); }
+:root[data-theme$="-dark"] .auth-form-wrap h2 { color: var(--theme-text); }
+:root[data-theme$="-dark"] .auth-form-eyebrow { color: var(--theme-primary); }
+:root[data-theme$="-dark"] .auth-switch-link { color: var(--theme-primary); }
+
+.my-support-requests { display: grid; gap: 10px; margin-top: 20px; }
+.my-support-requests > header h2 { margin: 0 0 4px; color: var(--theme-text); font-size: 17px; }
+.my-support-requests > header p { margin: 0; color: var(--theme-muted); font-size: 11px; }
+.my-support-request { padding: 13px; border: 1px solid var(--theme-line); border-radius: 4px; background: var(--theme-surface); color: var(--theme-text); }
+.my-support-request > div { display: flex; align-items: center; gap: 8px; }
+.my-support-request h3 { margin: 10px 0 5px; color: var(--theme-text); font-size: 13px; }
+.my-support-request > p { margin: 0 0 10px; color: var(--theme-text); font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
+.my-support-request > small, .my-support-empty { color: var(--theme-muted); font-size: 10px; }
+.my-support-status { padding: 4px 7px; border-radius: 99px; background: var(--theme-soft); color: var(--theme-soft-text); font-size: 9px; font-weight: 700; text-transform: capitalize; }
+.my-support-request blockquote, .support-admin-reply { margin: 10px 0 0; padding: 10px; border: 1px solid var(--theme-line); border-left: 3px solid var(--theme-primary); border-radius: 3px; background: var(--theme-bg); color: var(--theme-text); }
+.my-support-request blockquote strong, .support-admin-reply strong { font-size: 10px; }
+.my-support-request blockquote p, .support-admin-reply p { margin: 5px 0 0; color: var(--theme-text); font-size: 11px; line-height: 1.55; white-space: pre-wrap; }
+.support-reply-form { display: grid; gap: 7px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--theme-line); }
+.support-reply-form > label { color: var(--theme-text); font-size: 10px; font-weight: 750; }
+.support-reply-form textarea { width: 100%; resize: vertical; padding: 9px 10px; border: 1px solid var(--theme-line); border-radius: 3px; background: var(--theme-bg); color: var(--theme-text); font-size: 11px; line-height: 1.5; }
+.support-reply-form .primary-button { width: fit-content; min-height: 34px; }
+
 @media (max-width: 560px) {
   .post-image-preview { max-width: 100%; }
   .community-image-upload span { max-width: 120px; }

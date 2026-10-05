@@ -161,9 +161,11 @@ CREATE TABLE IF NOT EXISTS support_requests (
   message TEXT NOT NULL,
   recruiter_email TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'reviewing', 'resolved')),
+  admin_reply TEXT NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE support_requests ADD COLUMN IF NOT EXISTS admin_reply TEXT NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS support_requests_created_idx ON support_requests(created_at DESC);
 
 DELETE FROM jobs WHERE id IN ('job-1', 'job-2', 'job-3', 'job-4', 'job-5');

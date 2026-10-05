@@ -41,13 +41,18 @@ export async function GET(request: Request) {
               WHEN outgoing.status = 'accepted' OR incoming.status = 'accepted' THEN 'friends'
               WHEN outgoing.status = 'pending' THEN 'sent'
               WHEN incoming.status = 'pending' THEN 'received'
-              ELSE 'none' END AS "connectionStatus"
+              ELSE 'none' END AS "connectionStatus",
+         CASE WHEN $2 = 'admin' THEN EXISTS (
+           SELECT 1 FROM support_requests report
+           WHERE report.category = 'report_recruiter' AND u.role = 'recruiter'
+             AND LOWER(report.recruiter_email) = LOWER(u.email)
+         ) ELSE FALSE END AS "canAdminConnect"
        FROM users u
        LEFT JOIN community_connections outgoing ON outgoing.requester_id = $1 AND outgoing.recipient_id = u.id
        LEFT JOIN community_connections incoming ON incoming.requester_id = u.id AND incoming.recipient_id = $1
       WHERE u.disabled = FALSE
-       ORDER BY u.created_at DESC LIMIT 250`,
-      [user.id],
+       ORDER BY (u.role = 'admin') DESC, u.created_at DESC LIMIT 250`,
+      [user.id, user.role],
     ),
     pool.query(
       `WITH listed_companies AS (
@@ -119,8 +124,22 @@ export async function POST(request: Request) {
   if (action === "friend_request") {
     const targetId = String(body.targetId ?? "");
     if (!targetId || targetId === user.id) return NextResponse.json({ error: "Choose another member." }, { status: 400 });
-    const target = await pool.query("SELECT id FROM users WHERE id = $1 AND disabled = FALSE", [targetId]);
+    const target = await pool.query(
+      `SELECT target.id,
+        (SELECT role FROM users WHERE id = $2) AS "requesterRole",
+        EXISTS (SELECT 1 FROM support_requests report
+          WHERE report.category = 'report_recruiter' AND target.role = 'recruiter'
+            AND LOWER(report.recruiter_email) = LOWER(target.email)) AS "hasRecruiterReport"
+       FROM users target WHERE target.id = $1 AND target.disabled = FALSE`,
+      [targetId, user.id],
+    );
     if (!target.rowCount) return NextResponse.json({ error: "This member is unavailable." }, { status: 404 });
+    if (target.rows[0].requesterRole === "admin" && !target.rows[0].hasRecruiterReport) {
+      return NextResponse.json({ error: "Admin connection requests are available only for recruiters reported to CareerHub." }, { status: 403 });
+    }
+    if (target.rows[0].requesterRole !== "admin" && user.role === "admin" && !target.rows[0].hasRecruiterReport) {
+      return NextResponse.json({ error: "You can connect with a recruiter after a report has been submitted about them." }, { status: 403 });
+    }
     const existing = await pool.query(
       `SELECT status, requester_id AS "requesterId" FROM community_connections
        WHERE (requester_id = $1 AND recipient_id = $2) OR (requester_id = $2 AND recipient_id = $1) LIMIT 1`,

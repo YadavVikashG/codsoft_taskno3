@@ -8,12 +8,16 @@ const categories = new Set(["suggestion", "campaign", "report_recruiter", "other
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
-  if (user.role !== "admin") return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
-  if (!pool) return NextResponse.json({ requests: [] });
+  if (!pool) return NextResponse.json({ error: "Database unavailable." }, { status: 503 });
+  const isAdmin = user.role === "admin";
   const result = await pool.query(
     `SELECT s.id, s.category, s.subject, s.message, s.recruiter_email AS "recruiterEmail",
-       s.status, s.created_at AS "createdAt", u.name AS "senderName", u.email AS "senderEmail"
-     FROM support_requests s JOIN users u ON u.id = s.user_id ORDER BY s.created_at DESC LIMIT 500`,
+      s.status, s.admin_reply AS "adminReply", s.created_at AS "createdAt",
+      u.name AS "senderName", u.email AS "senderEmail"
+    FROM support_requests s JOIN users u ON u.id = s.user_id
+     ${isAdmin ? "" : "WHERE s.user_id = $1"}
+     ORDER BY s.created_at DESC LIMIT 500`,
+    isAdmin ? [] : [user.id],
   );
   return NextResponse.json({ requests: result.rows });
 }
@@ -48,6 +52,18 @@ export async function PATCH(request: Request) {
   if (user.role !== "admin") return NextResponse.json({ error: "Administrator access required." }, { status: 403 });
   if (!pool) return NextResponse.json({ error: "Database unavailable." }, { status: 503 });
   const body = await request.json();
+  if (typeof body.id !== "string") return NextResponse.json({ error: "Choose a valid request." }, { status: 400 });
+  if (typeof body.reply === "string") {
+    const reply = body.reply.trim();
+    if (reply.length < 1 || reply.length > 5000) return NextResponse.json({ error: "Write a reply of up to 5,000 characters." }, { status: 400 });
+    const result = await pool.query(
+      `UPDATE support_requests SET admin_reply = $2
+       WHERE id = $1 RETURNING id, admin_reply AS "adminReply"`,
+      [body.id, reply],
+    );
+    if (!result.rowCount) return NextResponse.json({ error: "Request not found." }, { status: 404 });
+    return NextResponse.json({ request: result.rows[0] });
+  }
   if (typeof body.id !== "string" || !["open", "reviewing", "resolved"].includes(body.status)) {
     return NextResponse.json({ error: "Choose a valid request status." }, { status: 400 });
   }
