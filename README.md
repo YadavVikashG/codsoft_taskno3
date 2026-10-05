@@ -17,6 +17,10 @@ To provision the first administrator, run `npm run admin:create` in an interacti
 
 Each account uses a PostgreSQL-backed, HTTP-only session. API routes enforce account role and record ownership. Uploaded resumes are private and only available to their owner, the recruiter handling an application, or an administrator.
 
+### Google sign-up and sign-in
+
+Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_URI` in `.env.local` and your deployment's secret store. Register the exact redirect URI `http://localhost:3000/api/auth/google/callback` for local development and the HTTPS equivalent for production in Google Cloud. Google OAuth apps in testing mode only allow configured test users. New accounts use the selected candidate or recruiter role; recruiter sign-up also requires a company name. Existing accounts retain their current role when signing in with the same verified Google email.
+
 ## PostgreSQL
 
 Create a database, copy `.env.example` to `.env.local`, set `DATABASE_URL`, and run the schema:

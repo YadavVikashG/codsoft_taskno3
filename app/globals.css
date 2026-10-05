@@ -1488,6 +1488,17 @@ h1, h2, h3, .welcome-row h1, .recruiter-welcome h1, .subpage-heading h1,
 .community-compose footer { flex-wrap: wrap; gap: 9px; }
 .community-compose footer small { margin-left: auto; }
 
+.auth-divider { display: flex; align-items: center; gap: 10px; margin: 17px 0 12px; color: #758078; font-size: 9px; }
+.auth-divider span { height: 1px; flex: 1; background: #e5e9e2; }
+.google-auth-button { width: 100%; min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid #d9dfd8; border-radius: 4px; background: #fff; color: #26352b; font-size: 11px; font-weight: 700; transition: background .15s, border-color .15s; }
+.google-auth-button:hover { border-color: #aebbb0; background: #f8faf7; }
+.google-auth-button:disabled { opacity: .65; cursor: wait; }
+.google-auth-mark { font-family: Arial, sans-serif; font-size: 17px; font-weight: 800; background: conic-gradient(from -45deg, #4285f4 0deg 95deg, #34a853 95deg 175deg, #fbbc05 175deg 250deg, #ea4335 250deg 310deg, #4285f4 310deg); background-clip: text; -webkit-text-fill-color: transparent; }
+:root[data-theme$="-dark"] .auth-divider span { background: var(--theme-line); }
+:root[data-theme$="-dark"] .auth-divider { color: var(--theme-muted); }
+:root[data-theme$="-dark"] .google-auth-button { border-color: var(--theme-line); background: var(--theme-bg); color: var(--theme-text); }
+:root[data-theme$="-dark"] .google-auth-button:hover { background: var(--theme-soft); }
+
 :root[data-theme$="-dark"] .auth-form > label,
 :root[data-theme$="-dark"] .support-form > label,
 :root[data-theme$="-dark"] .support-reply-form > label { color: var(--theme-text); }

@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight, BriefcaseBusiness, CheckCircle2, Eye, EyeOff, Search, Sparkles } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AuthUser, UserRole } from "@/lib/types";
 import { ThemeControl } from "@/components/theme-control";
 import { getThemeImage, ThemeId, ThemeMode } from "@/lib/themes";
@@ -11,7 +11,25 @@ export function AuthScreen({ onAuthenticated, theme, themeMode, onSelectTheme, o
   const [role, setRole] = useState<"candidate" | "recruiter">("candidate");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [error, setError] = useState("");
+  const [company, setCompany] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("google_error");
+    if (oauthError) {
+      const messages: Record<string, string> = {
+        setup: "Google sign-in is not configured yet.",
+        cancelled: "Google sign-in was cancelled.",
+        signin: "No account exists for this Google email yet. Create an account first.",
+        unavailable: "This account is unavailable. Contact CareerHub support.",
+        failed: "Google sign-in could not be completed. Please try again.",
+      };
+      setError(messages[oauthError] ?? messages.failed);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -41,6 +59,24 @@ export function AuthScreen({ onAuthenticated, theme, themeMode, onSelectTheme, o
     }
   }
 
+  async function continueWithGoogle() {
+    setGoogleBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/auth/google/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, company, intent: screen }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not start Google sign-in.");
+      window.location.assign(result.url);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not start Google sign-in.");
+      setGoogleBusy(false);
+    }
+  }
+
   return (
     <main className="auth-page">
       <section className="auth-story">
@@ -63,12 +99,17 @@ export function AuthScreen({ onAuthenticated, theme, themeMode, onSelectTheme, o
 
           <form className="auth-form" onSubmit={submit}>
             {screen === "register" && <label>Your name<input name="name" autoComplete="name" placeholder="Alex Morgan" minLength={2} maxLength={100} required /></label>}
-            {screen === "register" && role === "recruiter" && <label>Company<input name="company" autoComplete="organization" placeholder="Your company" minLength={2} required /></label>}
+            {screen === "register" && role === "recruiter" && <label>Company<input name="company" autoComplete="organization" placeholder="Your company" minLength={2} value={company} onChange={(event) => setCompany(event.target.value)} required /></label>}
             <label>Email address<input name="email" type="email" autoComplete="email" placeholder="you@example.com" required /></label>
             <label>Password<span className="password-input"><input name="password" type={showPassword ? "text" : "password"} autoComplete={screen === "login" ? "current-password" : "new-password"} placeholder={screen === "login" ? "Enter your password" : "At least 10 characters"} minLength={screen === "register" ? 10 : undefined} required /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></span></label>
             {error && <p className="auth-error" role="alert">{error}</p>}
             <button className="auth-submit" type="submit" disabled={busy}>{busy ? "One moment…" : screen === "login" ? "Sign in" : role === "candidate" ? "Create candidate account" : "Create recruiter account"}<ArrowRight size={16} /></button>
           </form>
+          <div className="auth-divider"><span />or continue with<span /></div>
+          <button className="google-auth-button" type="button" onClick={() => void continueWithGoogle()} disabled={googleBusy || busy}>
+            <span className="google-auth-mark" aria-hidden="true">G</span>
+            {googleBusy ? "Connecting to Google…" : "Continue with Google"}
+          </button>
           <p className="auth-security"><CheckCircle2 size={14} />Your account and profile stay yours.</p>
           <p className="admin-entry-note">Admin account? Sign in with your administrator credentials.</p>
         </div>
