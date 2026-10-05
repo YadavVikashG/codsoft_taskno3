@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowUpRight, Building2, Check, Heart, ImagePlus, Mail, MessageCircle, Search, Send, Share2, UserPlus, UsersRound, X } from "lucide-react";
+import { ArrowUpRight, Bell, Building2, Check, Heart, ImagePlus, Mail, MessageCircle, Search, Send, Share2, UserPlus, UsersRound, X } from "lucide-react";
 
 type ConnectionStatus = "none" | "sent" | "received" | "friends" | "self";
 type Person = { id: string; name: string; role: string; company: string; headline: string; location: string; educationLevel: string; educationDetails: string; certificates: string[]; currentCompany: string; currentPosition: string; connectionStatus: ConnectionStatus; canAdminConnect: boolean };
@@ -32,6 +32,8 @@ export function CommunityCenter({ currentUserId, currentUserName, currentUserRol
   const [sharingPost, setSharingPost] = useState("");
   const [shareText, setShareText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [notifyingProfile, setNotifyingProfile] = useState(false);
+  const [notifiedProfiles, setNotifiedProfiles] = useState<Record<string, boolean>>({});
   const [error, setError] = useState("");
 
   async function refresh() {
@@ -141,6 +143,25 @@ export function CommunityCenter({ currentUserId, currentUserName, currentUserRol
     }
   }
 
+  async function notifyProfileOwner(person: Person) {
+    setNotifyingProfile(true);
+    setError("");
+    try {
+      const response = await fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetId: person.id }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not notify this member.");
+      setNotifiedProfiles((current) => ({ ...current, [person.id]: true }));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not notify this member.");
+    } finally {
+      setNotifyingProfile(false);
+    }
+  }
+
   const visiblePeople = people.filter((person) => `${person.name} ${person.headline} ${person.currentCompany} ${person.company} ${person.location}`.toLowerCase().includes(query.toLowerCase()));
   const visibleCompanies = companies.filter((company) => company.name.toLowerCase().includes(query.toLowerCase()));
   const acceptedFriends = people.filter((person) => person.connectionStatus === "friends");
@@ -191,7 +212,7 @@ export function CommunityCenter({ currentUserId, currentUserName, currentUserRol
       : <div className="community-directory">{visibleCompanies.map((company) => <article className="company-card" key={company.name}><span className="company-card-mark"><Building2 size={19} /></span><div><strong>{company.name}</strong><small>{company.followers} {company.followers === 1 ? "follower" : "followers"}</small></div><button className={company.following ? "follow-button is-following" : "follow-button"} onClick={() => void act({ action: "follow_company", company: company.name, following: !company.following })} disabled={busy}>{company.following ? <><Check size={14} />Following</> : "Follow"}</button></article>)}{visibleCompanies.length === 0 && <div className="community-empty"><Building2 size={22} /><strong>No companies found</strong><span>Companies appear here when recruiters or live jobs list them.</span></div>}</div>}
     </>}
 
-    {profile && <div className="profile-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setProfile(null); }}><section className="community-profile-dialog" role="dialog" aria-modal="true" aria-label={`${profile.name} profile`}><header><span className="community-avatar community-avatar-large">{profile.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span><button onClick={() => setProfile(null)} aria-label="Close profile"><X size={18} /></button></header><h2>{profile.name}</h2><p>{profile.headline || (profile.role === "admin" ? "CareerHub admin" : profile.role)}</p><small>{profile.location || "Location not provided"}</small>{(profile.currentPosition || profile.currentCompany) && <section><strong>Experience</strong><p>{[profile.currentPosition, profile.currentCompany].filter(Boolean).join(" · ")}</p></section>}{(profile.educationLevel || profile.educationDetails) && <section><strong>Education</strong><p>{[profile.educationLevel, profile.educationDetails].filter(Boolean).join(" · ")}</p></section>}{profile.certificates?.length > 0 && <section><strong>Certificates</strong><ul>{profile.certificates.map((certificate) => <li key={certificate}>{certificate}</li>)}</ul></section>}{profile.id !== currentUserId && profile.connectionStatus === "friends" && <button className="friend-message-button" onClick={() => void openMessages(profile)}><Mail size={14} />Message friend</button>}{profile.id !== currentUserId && profile.connectionStatus === "none" && (currentUserRole !== "admin" || profile.canAdminConnect) && <button className="connect-button" onClick={async () => { if (await act({ action: "friend_request", targetId: profile.id })) setProfile(null); }} disabled={busy}><UserPlus size={14} />Send friend request</button>}{profile.id !== currentUserId && profile.connectionStatus === "received" && <button className="connect-button" onClick={async () => { if (await act({ action: "accept_request", targetId: profile.id })) setProfile(null); }} disabled={busy}><Check size={14} />Accept friend request</button>}</section></div>}
+    {profile && <div className="profile-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setProfile(null); }}><section className="community-profile-dialog" role="dialog" aria-modal="true" aria-label={`${profile.name} profile`}><header><span className="community-avatar community-avatar-large">{profile.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span><button onClick={() => setProfile(null)} aria-label="Close profile"><X size={18} /></button></header><h2>{profile.name}</h2><p>{profile.headline || (profile.role === "admin" ? "CareerHub admin" : profile.role)}</p><small>{profile.location || "Location not provided"}</small>{(profile.currentPosition || profile.currentCompany) && <section><strong>Experience</strong><p>{[profile.currentPosition, profile.currentCompany].filter(Boolean).join(" · ")}</p></section>}{(profile.educationLevel || profile.educationDetails) && <section><strong>Education</strong><p>{[profile.educationLevel, profile.educationDetails].filter(Boolean).join(" · ")}</p></section>}{profile.certificates?.length > 0 && <section><strong>Certificates</strong><ul>{profile.certificates.map((certificate) => <li key={certificate}>{certificate}</li>)}</ul></section>}{profile.id !== currentUserId && <div className="profile-actions"><button className="notify-profile-button" onClick={() => void notifyProfileOwner(profile)} disabled={notifyingProfile || notifiedProfiles[profile.id]}>{notifiedProfiles[profile.id] ? <><Check size={14} />Notification sent</> : <><Bell size={14} />Notify {profile.name.split(/\s+/)[0]}</>}</button>{profile.connectionStatus === "friends" && <button className="friend-message-button" onClick={() => void openMessages(profile)}><Mail size={14} />Message friend</button>}{profile.connectionStatus === "none" && (currentUserRole !== "admin" || profile.canAdminConnect) && <button className="connect-button" onClick={async () => { if (await act({ action: "friend_request", targetId: profile.id })) setProfile(null); }} disabled={busy}><UserPlus size={14} />Send friend request</button>}{profile.connectionStatus === "received" && <button className="connect-button" onClick={async () => { if (await act({ action: "accept_request", targetId: profile.id })) setProfile(null); }} disabled={busy}><Check size={14} />Accept friend request</button>}</div>}</section></div>}
     {likesForPost && <div className="profile-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setLikesForPost(null); }}><section className="likers-dialog" role="dialog" aria-modal="true" aria-label="People who liked this post"><header><div><Heart size={16} /><span><strong>People who liked this post</strong><small>{likesForPost.likes} total {likesForPost.likes === 1 ? "like" : "likes"}</small></span></div><button onClick={() => setLikesForPost(null)} aria-label="Close likes"><X size={18} /></button></header><div className="likers-list">{likesForPost.likers.length ? likesForPost.likers.map((liker) => <button key={liker.id} onClick={() => { setLikesForPost(null); const person = people.find((item) => item.id === liker.id); if (person) setProfile(person); }}><span className="community-avatar">{liker.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span><span><strong>{liker.name}{liker.id === currentUserId ? " · You" : ""}</strong><small>{liker.headline || "CareerHub member"}</small></span>{liker.isFriend && <em><Check size={12} />Friend</em>}</button>) : <p>No likes yet.</p>}</div></section></div>}
     {messageFriend && <div className="profile-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setMessageFriend(null); }}><section className="direct-message-dialog" role="dialog" aria-modal="true" aria-label={`Messages with ${messageFriend.name}`}><header><div><span className="community-avatar">{messageFriend.name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span><span><strong>{messageFriend.name}</strong><small>{messageFriend.headline || "Connected member"}</small></span></div><button onClick={() => setMessageFriend(null)} aria-label="Close messages"><X size={18} /></button></header><div className="direct-message-list">{messagesLoading ? <p>Loading messages…</p> : directMessages.length ? directMessages.map((message) => <article className={message.senderId === currentUserId ? "direct-message-self" : ""} key={message.id}><strong>{message.senderName}</strong><p>{message.body}</p><time>{new Date(message.createdAt).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}</time></article>) : <p className="connections-empty">You’re connected. Start a conversation.</p>}</div><form className="direct-message-compose" onSubmit={sendDirectMessage}><input value={directMessageText} onChange={(event) => setDirectMessageText(event.target.value)} placeholder="Write a message" maxLength={2000} required /><button className="primary-button" disabled={busy}><Send size={14} />Send</button></form></section></div>}
   </section>;

@@ -41,6 +41,7 @@ import { AuthUser } from "@/lib/types";
 import { ApplicationCommunications } from "@/components/application-communications";
 import { HelpCenter, SupportInbox } from "@/components/help-center";
 import { CommunityCenter } from "@/components/community-center";
+import { NotificationCenter } from "@/components/notification-center";
 import { ThemeControl } from "@/components/theme-control";
 import { getSavedTheme, getThemeImage, randomTheme, ThemeId, ThemeMode } from "@/lib/themes";
 
@@ -406,6 +407,7 @@ function Portal({ user, onSignOut, theme, themeMode, onSelectTheme, onAutoTheme 
           <div className="breadcrumb"><span>CareerHub</span><span className="breadcrumb-dot">/</span><strong>{navLabel(view)}</strong></div>
           <div className="topbar-actions">
             <button className="command-trigger" onClick={() => { setCommandOpen(true); setCommandSearch(""); }} aria-label="Open command palette"><Search size={15} /><kbd>⌘K</kbd></button>
+            <NotificationCenter />
             <ThemeControl theme={theme} mode={themeMode} onSelect={onSelectTheme} onAuto={onAutoTheme} />
             <span className="live-status"><i /> CareerHub workspace</span>
             <button className="top-avatar" aria-label="Open your profile" onClick={() => navigate(isCandidate ? "profile" : isRecruiter ? "overview" : "admin")}>{userInitials(profile.name)}</button>

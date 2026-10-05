@@ -35,6 +35,8 @@ The API uses PostgreSQL for accounts, sessions, job listings, saved roles, appli
 
 Member profiles support education, certificates, and current work details. The Community view provides member discovery, friend requests, accepted-friend messaging, company follows, and posts with likes, comments, and shares. Direct messages are available only after a friend request is accepted. For an existing database, apply the additive profile and community schema with `psql "$DATABASE_URL" -f db/schema.sql`.
 
+Members can explicitly notify another member from that member's Community profile; notifications appear in the workspace bell and can be marked read. Apply `db/schema.sql` to existing databases to create the notification table.
+
 ## Cloud resume storage
 
 Set `S3_BUCKET`, `S3_REGION`, and credentials in `.env.local` to use AWS S3. For Cloudflare R2 or another S3-compatible provider, also set `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY`. Resumes and Community post images use this bucket when configured. Post images support JPEG, PNG, WebP, or GIF up to 5 MB; without a bucket, they use private local storage.

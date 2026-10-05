@@ -153,6 +153,19 @@ CREATE TABLE IF NOT EXISTS application_messages (
 CREATE INDEX IF NOT EXISTS application_messages_thread_idx ON application_messages(application_id, created_at);
 CREATE INDEX IF NOT EXISTS application_messages_recipient_idx ON application_messages(recipient_id, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  recipient_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('profile_view')),
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (recipient_id <> actor_id),
+  UNIQUE (recipient_id, actor_id, kind)
+);
+
+CREATE INDEX IF NOT EXISTS notifications_recipient_created_idx ON notifications(recipient_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS support_requests (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
