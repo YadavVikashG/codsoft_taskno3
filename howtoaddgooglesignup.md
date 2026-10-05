@@ -43,21 +43,28 @@ Google may change the console's labels or navigation over time; complete the equ
 1. In Google Auth Platform, open **Clients** and choose **Create client**. In older console layouts, use **APIs & Services → Credentials → Create credentials → OAuth client ID**.
 2. Choose **Web application** as the application type.
 3. Give the client a recognizable name, such as `CareerHub local development`.
-4. Add the following **Authorized redirect URI** for a local app:
+4. Add the callback URL under **Authorized redirect URIs**. For a local app:
 
    ```text
    http://localhost:3000/api/auth/google/callback
    ```
 
-5. For a deployed app, add its HTTPS callback as a separate authorized redirect URI. For example, if the public app URL is `https://careers.example.com`, use:
+   For a Codespace, use the full HTTPS callback URL for the forwarded port, for example:
+
+   ```text
+   https://<your-codespace>-3000.app.github.dev/api/auth/google/callback
+   ```
+
+   For a deployed app, add its HTTPS callback as a separate authorized redirect URI. For example, if the public app URL is `https://careers.example.com`, use:
 
    ```text
    https://careers.example.com/api/auth/google/callback
    ```
 
    Replace the example host with the real public host. The scheme, host, port, and path must exactly match `GOOGLE_REDIRECT_URI` for that deployment. Production callbacks must use HTTPS.
+5. Do not put a callback URL with a path in **Authorized JavaScript origins**. That field accepts only an origin, such as `https://<your-codespace>-3000.app.github.dev`, with no `/api/...` path and no trailing slash. A JavaScript origin is not a replacement for the full URL in **Authorized redirect URIs**; this server-side OAuth flow needs the latter.
 6. Save/create the client.
-7. Copy the **Client ID** and store it as `GOOGLE_CLIENT_ID`.
+7. Copy the **Client ID** and store it as `GOOGLE_CLIENT_ID`. Make sure this is the same Web application client where you registered the callback URI.
 8. Copy the **Client secret** and immediately store it in a password manager or deployment secret store as `GOOGLE_CLIENT_SECRET`. Google may not show the secret again. If it is lost or exposed, create a new secret in Google Cloud, update the deployment, and revoke the old one.
 
 The OAuth client ID is an identifier and is not a substitute for the secret. Never publish the client secret.
@@ -80,7 +87,7 @@ Keep the existing `DATABASE_URL` configured as well. Google authentication creat
 
 If you open the app through a Codespaces forwarded port rather than `localhost:3000`, Google must redirect back to that same browser-accessible host:
 
-1. Start the development server and open port `3000` in the **Ports** tab. Set the port visibility to **Public** if Google needs to reach the forwarded callback.
+1. Start the development server and open port `3000` in the **Ports** tab. Set the port visibility so the browser can reach the app. Google redirects the user's browser to the callback, so the app does not need to accept a direct server-to-server callback from Google.
 2. Copy the forwarded HTTPS URL shown for port `3000`, for example `https://<your-codespace>-3000.app.github.dev`. Use the actual URL shown by Codespaces; it can change when the Codespace or forwarded port is recreated.
 3. In Google Cloud, add this exact authorized redirect URI, replacing the example host:
 
@@ -112,8 +119,8 @@ npm run dev
 
 Then:
 
-1. Open `http://localhost:3000`.
-2. Choose **Create one** to open the registration form.
+1. Open the app using the same host used in `GOOGLE_REDIRECT_URI` (for Codespaces, use the forwarded HTTPS URL).
+2. Choose **Create one** to open the registration form. Google sign-in creates a new account only from this registration form; choosing **Sign in** will not create an account.
 3. Choose **I'm looking** for a candidate account, or **I'm hiring** and enter a company name for a recruiter account.
 4. Select **Continue with Google**.
 5. Choose a Google account that is listed as a test user while the OAuth app is in Testing.
@@ -135,7 +142,7 @@ Google sign-up uses the selected candidate/recruiter role. Recruiter registratio
 
 ### `redirect_uri_mismatch`
 
-The Google Cloud authorized redirect URI and `GOOGLE_REDIRECT_URI` do not exactly match. Check `http` versus `https`, hostname, port, and the `/api/auth/google/callback` path. Save the Google setting, update the environment, and restart/redeploy.
+The redirect URI in the Google authorization request must exactly match one of the **Authorized redirect URIs** on the Web application OAuth client identified by `GOOGLE_CLIENT_ID`. Compare the entire URI, including `http` versus `https`, hostname, port, and `/api/auth/google/callback` path. Do not add this full callback under **Authorized JavaScript origins**; that field rejects paths and is not used in place of the authorized redirect URI. Confirm the callback was saved on the same OAuth client as the configured client ID, update `GOOGLE_REDIRECT_URI` to match, then restart/redeploy. For an error-page URL containing `redirect_uri`, compare that value character-for-character with both settings.
 
 ### Google says the app is unavailable to this user
 
@@ -147,7 +154,7 @@ Set all three `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REDIRECT_U
 
 ### Login says no account exists
 
-Choose **Create one** and complete Google sign-up first. For recruiter registration, select the recruiter account type and enter the company name before continuing.
+This means the Google flow was started in **Sign in** mode, which does not create accounts. Return to the app, choose **Create one**, select the candidate or recruiter account type, and then select **Continue with Google**. Recruiter registration also requires a company name. If the Google callback returns a generic failure instead, check the development-server logs for a token exchange, profile, database, or session error.
 
 ### Sign-in returns to CareerHub with an error
 
