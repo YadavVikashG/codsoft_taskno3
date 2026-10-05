@@ -9,6 +9,7 @@ export type Job = {
   salaryMin: number;
   salaryMax: number;
   posted: string;
+  postedAt?: string;
   description: string;
   tags: string[];
   color: string;

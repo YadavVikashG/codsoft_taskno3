@@ -152,6 +152,7 @@ function Portal({ user, onSignOut, theme, themeMode, onSelectTheme, onAutoTheme 
   const [workplace, setWorkplace] = useState("All types");
   const [employmentTypes, setEmploymentTypes] = useState<string[]>([]);
   const [salaryFloor, setSalaryFloor] = useState(0);
+  const [sortBy, setSortBy] = useState<"newest" | "salary-high" | "salary-low">("newest");
   const [applicationJob, setApplicationJob] = useState<Job | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [postOpen, setPostOpen] = useState(false);
@@ -199,6 +200,10 @@ function Portal({ user, onSignOut, theme, themeMode, onSelectTheme, onAutoTheme 
     const matchesSalary = job.salaryMax >= salaryFloor;
     const matchesSaved = view !== "saved" || savedIds.includes(job.id);
     return matchesSearch && matchesLocation && matchesWorkplace && matchesEmployment && matchesSalary && matchesSaved;
+  }).sort((first, second) => {
+    if (sortBy === "salary-high") return second.salaryMax - first.salaryMax;
+    if (sortBy === "salary-low") return first.salaryMin - second.salaryMin;
+    return (Date.parse(second.postedAt ?? "") || 0) - (Date.parse(first.postedAt ?? "") || 0);
   });
   const selectedJob = visibleJobs.find((job) => job.id === selectedId) ?? visibleJobs[0] ?? null;
   const applicationIds = applications.map((application) => application.jobId);
@@ -432,7 +437,7 @@ function Portal({ user, onSignOut, theme, themeMode, onSelectTheme, onAutoTheme 
             <div className="results-toolbar">
               <div><span className="results-count">{visibleJobs.length}</span><span>roles worth a look</span></div>
               <div className="filter-actions">
-                <span className="sort-button"><ArrowDownUp size={14} /><span>Newest first</span></span>
+                <label className="filter-select sort-select"><ArrowDownUp size={14} /><select aria-label="Sort job listings" value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}><option value="newest">Newest first</option><option value="salary-high">Salary: high to low</option><option value="salary-low">Salary: low to high</option></select><ChevronDown size={13} /></label>
               </div>
             </div>
 
@@ -517,7 +522,7 @@ function Portal({ user, onSignOut, theme, themeMode, onSelectTheme, onAutoTheme 
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Could not publish this role.");
         const savedJob = result.job;
-        const newJob: Job = { ...job, ...savedJob, posted: "Just now", salary: formatSalary(job.salaryMin, job.salaryMax), tags: job.tags ?? [], color: "#e8eff0", initials: job.company.slice(0, 1).toUpperCase() };
+        const newJob: Job = { ...job, ...savedJob, posted: "Just now", postedAt: new Date().toISOString(), salary: formatSalary(job.salaryMin, job.salaryMax), tags: job.tags ?? [], color: "#e8eff0", initials: job.company.slice(0, 1).toUpperCase() };
         setJobs((current) => [newJob, ...current]);
         setNotice("Your job is live on CareerHub.");
         setPostOpen(false);

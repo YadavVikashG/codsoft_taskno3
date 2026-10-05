@@ -104,6 +104,8 @@ h1, h2, h3, p { margin-top: 0; }
 .filter-actions { display: flex; align-items: center; gap: 10px; }
 .filter-select, .sort-button { height: 32px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border: 1px solid #e7e9e4; border-radius: 3px; background: #fff; color: #6b766f; font-size: 10px; }
 .filter-select select { width: 77px; appearance: none; border: 0; outline: 0; background: transparent; color: inherit; font-size: 10px; cursor: pointer; }
+.sort-select select { width: 132px; }
+.sort-select > svg:last-child { flex: 0 0 auto; color: #89938b; pointer-events: none; }
 .filter-select select:focus-visible { outline: 0; }
 .sort-button:hover { background: #f8f9f6; }
 .jobs-layout { display: grid; grid-template-columns: minmax(280px, .93fr) minmax(300px, 1.07fr); align-items: start; gap: 17px; }
@@ -370,12 +372,13 @@ h1, h2, h3, p { margin-top: 0; }
   .search-divider { width: auto; height: 1px; grid-column: 1 / -1; grid-row: 2; }
   .location-field { grid-column: 1 / 2; grid-row: 3; }
   .search-submit { min-width: 0; height: 36px; grid-column: 2; grid-row: 3; justify-self: end; padding: 0 12px; font-size: 10px; }
-  .results-toolbar { min-height: 61px; }
+  .results-toolbar { min-height: 61px; flex-wrap: wrap; gap: 8px; padding: 10px 0; }
   .results-toolbar > div:first-child { font-size: 11px; }
   .results-count { font-size: 18px; }
   .filter-actions { gap: 5px; }
   .filter-select, .sort-button { height: 29px; gap: 4px; padding: 0 6px; }
   .filter-select select { width: 68px; font-size: 10px; }
+  .sort-select select { width: 132px; }
   .sort-button { font-size: 10px; }
   .sort-button svg { width: 12px; }
   .jobs-layout { gap: 11px; }
