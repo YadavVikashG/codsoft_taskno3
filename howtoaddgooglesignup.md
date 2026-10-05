@@ -8,6 +8,7 @@ You need:
 
 - A Google account with access to [Google Cloud Console](https://console.cloud.google.com/).
 - A running CareerHub deployment and its public URL. For local development, the URL is usually `http://localhost:3000`.
+- If running in GitHub Codespaces, the browser-accessible forwarded URL for the running app (usually ending in `.app.github.dev`).
 - A working PostgreSQL database configured with `DATABASE_URL`.
 - A secure place to store environment variables. Do not put a client secret in source code, documentation, chat, screenshots, or a public repository.
 
@@ -74,6 +75,23 @@ GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 Replace the example values with credentials from your own Google Cloud project. Do not add real secrets to `.env.example`, commit `.env.local`, or paste secrets into an issue or chat.
 
 Keep the existing `DATABASE_URL` configured as well. Google authentication creates or looks up a CareerHub database account and then creates the application's normal database-backed session.
+
+### Running inside GitHub Codespaces
+
+If you open the app through a Codespaces forwarded port rather than `localhost:3000`, Google must redirect back to that same browser-accessible host:
+
+1. Start the development server and open port `3000` in the **Ports** tab. Set the port visibility to **Public** if Google needs to reach the forwarded callback.
+2. Copy the forwarded HTTPS URL shown for port `3000`, for example `https://<your-codespace>-3000.app.github.dev`. Use the actual URL shown by Codespaces; it can change when the Codespace or forwarded port is recreated.
+3. In Google Cloud, add this exact authorized redirect URI, replacing the example host:
+
+   ```text
+   https://<your-codespace>-3000.app.github.dev/api/auth/google/callback
+   ```
+
+4. Set `GOOGLE_REDIRECT_URI` in the Codespace's root `.env.local` to that same exact callback URL. Keep `GOOGLE_CLIENT_SECRET` in `.env.local` only; never put it in the tracked `.env.example`.
+5. Restart `npm run dev` after changing `.env.local`, then open CareerHub using that same forwarded HTTPS URL.
+
+The browser must use the same host registered as the OAuth redirect. Do not configure the callback as `localhost` if the browser is actually using a Codespaces URL. If the forwarded URL changes, update both Google Cloud's authorized redirect URI and `GOOGLE_REDIRECT_URI`, then restart the server.
 
 For production:
 
